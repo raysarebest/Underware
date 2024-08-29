@@ -13,7 +13,6 @@ import SwiftSyntaxMacros
 /// will produce
 ///
 ///     "NSObject"
-
 public struct NameOf: ExpressionMacro {
     public static func expansion(of node: some FreestandingMacroExpansionSyntax, in context: some MacroExpansionContext) throws -> ExprSyntax {
         
@@ -35,9 +34,15 @@ public struct NameOf: ExpressionMacro {
         return #"(\#(raw: sourceNameKey): \#(literal: type.trimmedDescription), expression: \#(expression)).\#(raw: sourceNameKey)"# // Also include the expression to make sure the compiler recognizes it after the macro runs
     }
     
+    /// Diagnostics generated in the expansion of the ``NameOf`` macro
     enum ExpansionErrorMessage: DiagnosticMessage {
         
+        /// Diagnostic generated when the macro was not passed a parameter
         case missingParameter
+        /**
+         Diagnostic generated when the macro was passed a parameter that was not a type literal
+         - Parameter expression: The source-accurate expression that was not a type literal
+         */
         case nonTypeLiteral(expression: String)
         
         var message: String {
@@ -71,8 +76,10 @@ public struct NameOf: ExpressionMacro {
         }
     }
     
+    /// Fix-its corresponding to diagnostics generated while expanding the ``NameOf`` macro
     enum ExpansionErrorFixItMessage: FixItMessage {
         
+        /// Fix-it suggesting the addition of the parameter that was missing
         case missingParameter
         
         var message: String {
@@ -89,11 +96,4 @@ public struct NameOf: ExpressionMacro {
             }
         }
     }
-}
-
-@main
-struct UnderwarePlugin: CompilerPlugin {
-    let providingMacros: [Macro.Type] = [
-        NameOf.self,
-    ]
 }
